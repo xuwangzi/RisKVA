@@ -1,0 +1,233 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Virtualenv / Conda
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.conda/
+conda-env/
+.venv/
+
+# PyCharm
+.idea/
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Spyder
+.spyderproject
+.spyproject
+
+# Rope
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# ML/AI 相关文件
+# 模型文件
+*.pth
+*.pt
+*.bin
+*.safetensors
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.ckpt
+*.pb
+
+# 大型数据文件
+*.csv
+*.tsv
+*.json
+*.jsonl
+*.parquet
+*.feather
+*.arrow
+*.npy
+*.npz
+*.mat
+
+# 图片和媒体文件（如果不需要版本控制）
+# *.jpg
+# *.jpeg
+# *.png
+# *.gif
+# *.bmp
+# *.tiff
+# *.svg
+# *.mp4
+# *.avi
+# *.mov
+
+# 训练日志和输出
+logs/
+runs/
+outputs/
+results/
+checkpoints/
+wandb/
+tensorboard_logs/
+lightning_logs/
+
+# 模型相关目录
+models/
+
+# 数据集目录
+datasets/
+data/
+
+# 缓存文件
+.cache/
+*.cache
+cache/
+
+# 配置文件（敏感信息）
+.env
+.env.local
+.env.*.local
+config.json
+secrets.json
+
+# DeepSpeed
+.deepspeed_env
+
+# Accelerate
+accelerate_config.yaml
+
+# Weights & Biases
+wandb/
+
+# TensorBoard
+events.out.tfevents.*
+
+# 临时文件
+*.tmp
+*.temp
+*.log
+*.out
+*.err
+
+# 压缩文件
+*.zip
+*.tar.gz
+*.tar.bz2
+*.rar
+*.7z
+
+# 系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# 备份文件
+*.bak
+*.backup
+*.old
+*.orig
+*.swp
+*.swo
+
+# Git
+*.patch
+*.diff
+
+# 本地测试文件
+test_*
+debug_*
+scratch.*
+playground.* 

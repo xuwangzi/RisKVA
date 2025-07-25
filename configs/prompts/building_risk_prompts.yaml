@@ -1,0 +1,115 @@
+# 建筑风险检测提示词配置
+# ============================
+
+# 系统提示词模板
+system_prompts:
+  # 建筑缺陷检测专家系统提示
+  building_defect_expert: |
+    你是一个专业的建筑工程缺陷检测专家。请根据提供的图片，识别其中的缺陷风险问题，并提供详细的缺陷描述、风险、纠正和预防建议、风险等级评估（原本、现在）。
+
+    请按照以下格式回答：
+    **缺陷描述**: [详细描述发现的缺陷]
+    **风险**: [描述识别到的具体风险]
+    **纠正和预防建议**: [提供具体的解决方案建议]
+    **风险等级（原本）**: [轻微/中等/严重]
+    **风险等级（现在）**: [轻微/中等/严重]
+
+# 用户问题模板
+user_prompts:
+  # 标准建筑缺陷分析请求
+  standard_analysis: "请分析这张图片中的建筑工程问题，包括：1)缺陷描述 2)风险 3)纠正和预防建议 4)风险等级（原本） 5)风险等级（现在）。"
+
+# 回答模板
+response_templates:
+  # 标准回答格式
+  standard_format: |
+    **缺陷描述**: {defect_description}
+    **风险描述**: {risk_description}
+    **纠正和预防建议**: {correction_suggestions}
+    **风险等级（原本）**: {risk_level_original}
+    **风险等级（现在）**: {risk_level_now}
+
+# 风险等级定义
+risk_levels:
+  A:
+    risk_level: "正常技术风险"
+    description: |
+      风险等级低
+        无影响结构安全、使用安全的质量缺陷，有轻微影响使用功能，发生概率极低的质量缺陷
+        基本不造成或少量财产损失
+    color_code: "blue"
+    requirement: |
+      一般风险提醒
+  B:
+    risk_level: "轻微技术风险"
+    description: |
+      风险等级较低
+        无影响结构安全，有轻微影响使用安全、使用功能，发生概率低的质量缺陷，可能造成轻微的财产损失
+    color_code: "yellow"
+    requirement: |
+      风险提示
+        需引起注意，防止同类问题反复出现，并整改、回复TIS机构
+  C:
+    risk_level: "中等技术风险"
+    description: |
+      风险等级中等
+        有轻微的影响结构安全，中等使用安全、使用功能，发生概率低/较高的质量缺陷，可造成一定的财产损失
+    color_code: "orange"
+    requirement: |
+      风险警示
+        需落清并采取措施、整改、回复TIS机构
+  D:
+    risk_level: "严重技术风险"
+    description: |
+      风险等级较高
+        严重风险，有影响结构安全、使用安全，或事故概率高，严重影响使用功能的质量缺陷，可能造成严重的财产损失或产生恶劣的社会影响
+    color_code: "red"
+    requirement: |
+      严重风险警示
+        落清并立即采取整改，回复TIS机构
+  E:
+    risk_level: "严重质量行为风险"
+    description: |
+      风险等级较高
+        违反政府相关质量管理规定和规范性文件要求，未履行法定建设程序，未落实质量管理措施，可能造成较大社会影响的行为
+    color_code: "red"
+    requirement: |
+      严重风险警示
+        落清并立即采取整改，回复TIS机构
+  R:
+    risk_level: "技术风险保留"
+    description: |
+      在检查过程中，未能查见相关的工序材料或控制资料以证明其无技术风险，将该类检查内容的风险判定为"技术风险保留"，应有进一步的资料证明其实际风险等级
+    color_code: "gray"
+    requirement: |
+      持续收集
+  O:
+    risk_level: "观察项"
+    description: |
+      超出本行业技术知识领域并考虑到国家技术标准因素，或超过国家或项目地标准规范要求，根据TIS经验和知识，存在物质损坏的风险
+    color_code: "green"
+    requirement: |
+      持续关注
+
+# 常见缺陷类型
+defect_types:
+  - "墙体开裂"
+  - "防水失效"
+  - "钢筋锈蚀"
+  - "混凝土剥落"
+  - "管道泄漏"
+  - "绝缘老化"
+  - "地面沉降"
+  - "门窗变形"
+
+# 模板变量说明
+template_variables:
+  defect_description: "缺陷详细描述"
+  risk_description: "具体风险内容描述"
+  correction_suggestions: "纠正和预防建议内容"
+  risk_level_original: "原本风险等级状态"
+  risk_level_now: "现在风险等级状态"
+  severity: "严重程度评估"
+  impact_scope: "影响范围说明"
+  repair_priority: "修复优先级"
+  estimated_repair_time: "预计修复时间" 
