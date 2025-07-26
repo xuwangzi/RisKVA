@@ -140,6 +140,12 @@ wandb/
 tensorboard_logs/
 lightning_logs/
 
+# 回收站
+.recyclebin/
+
+# 参考资料
+references/
+
 # 模型相关目录
 models/
 

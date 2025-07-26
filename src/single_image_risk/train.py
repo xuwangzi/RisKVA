@@ -1,35 +1,118 @@
-"""
-pip install pillow
+# Copyright 2020-2025 The HuggingFace Team. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-# Tested on 8x H100 GPUs
-accelerate launch
-    --config_file=examples/accelerate_configs/deepspeed_zero3.yaml \
-    examples/scripts/sft_vlm.py \
+""" trl's example script
+Train Gemma-3 on the HuggingFaceH4/llava-instruct-mix-vsft dataset (single-image).
+
+accelerate launch \
+    --config_file examples/accelerate_configs/deepspeed_zero3.yaml \
+    examples/scripts/sft_vlm_gemma3.py \
     --dataset_name HuggingFaceH4/llava-instruct-mix-vsft \
-    --model_name_or_path llava-hf/llava-1.5-7b-hf \
-    --per_device_train_batch_size 8 \
-    --gradient_accumulation_steps 8 \
-    --output_dir sft-llava-1.5-7b-hf \
+    --model_name_or_path google/gemma-3-4b-it \
+    --per_device_train_batch_size 1 \
+    --gradient_accumulation_steps 1 \
+    --output_dir gemma-3-4b-it-trl-sft-llava-instruct-mix-vsft \
     --bf16 \
     --torch_dtype bfloat16 \
-    --gradient_checkpointing
+    --use_peft \
+    --lora_target_modules all-linear \
+    --attn_implementation eager
 
-For LLaVA-NeXT, use: (requires transformers>=4.45)
-    --model_name_or_path llava-hf/llava-v1.6-mistral-7b-hf
+Train Gemma-3 on the FanqingM/MMIU-Benchmark dataset (multi-image).
 
-For meta-llama/Llama-3.2-11B-Vision-Instruct, use: (requires transformers>=4.45.1)
-    --model_name_or_path meta-llama/Llama-3.2-11B-Vision-Instruct
+accelerate launch \
+    --config_file examples/accelerate_configs/deepspeed_zero3.yaml \
+    examples/scripts/sft_vlm_gemma3.py \
+    --dataset_name FanqingM/MMIU-Benchmark \
+    --dataset_train_split test \
+    --model_name_or_path google/gemma-3-4b-it \
+    --per_device_train_batch_size 1 \
+    --gradient_accumulation_steps 1 \
+    --output_dir gemma-3-4b-it-trl-sft-MMIU-Benchmark \
+    --bf16 \
+    --torch_dtype bfloat16 \
+    --use_peft \
+    --lora_target_modules all-linear
+    --attn_implementation eager
 """
 
-import torch
-import yaml  # type: ignore
-import os
-from datasets import load_dataset  # type: ignore
-from transformers import AutoModelForVision2Seq, AutoProcessor, LlavaForConditionalGeneration
-from dataclasses import dataclass, field
-from typing import Optional
+""" my script
 
-from trl import (  # type: ignore
+Train Gemma-3 on the HuggingFaceH4/llava-instruct-mix-vsft dataset (single-image).
+
+accelerate launch \
+    --config_file configs/accelerate_configs/deepspeed_zero3.yaml \
+    src/single_image_risk/train.py \
+    --dataset_name datasets/HuggingFaceH4/llava-instruct-mix-vsft \
+    --model_name_or_path models/pretrained_models/google/gemma-3-4b-it \
+    --per_device_train_batch_size 1 \
+    --gradient_accumulation_steps 1 \
+    --output_dir gemma-3-4b-it-trl-sft-llava-instruct-mix-vsft \
+    --bf16 True\
+    --torch_dtype bfloat16 \
+    --use_peft \
+    --lora_target_modules all-linear \
+    --attn_implementation eager
+
+Train Qwen2.5-VL on the HuggingFaceH4/llava-instruct-mix-vsft dataset (single-image).
+
+accelerate launch \
+    --config_file configs/accelerate_configs/deepspeed_zero3.yaml \
+    src/single_image_risk/train.py \
+    --dataset_name datasets/HuggingFaceH4/llava-instruct-mix-vsft \
+    --model_name_or_path models/pretrained_models/Qwen/Qwen2.5-VL-3B-Instruct \
+    --per_device_train_batch_size 1 \
+    --gradient_accumulation_steps 1 \
+    --output_dir gemma-3-4b-it-trl-sft-llava-instruct-mix-vsft \
+    --bf16 True\
+    --torch_dtype bfloat16 \
+    --use_peft \
+    --lora_target_modules all-linear \
+    --attn_implementation eager
+
+Train Qwen2.5-VL on the datasets/sft_data/single_image_tiny_247 local dataset (single-image).
+
+accelerate launch \
+    --config_file configs/accelerate_configs/deepspeed_zero3.yaml \
+    src/single_image_risk/train.py \
+    --dataset_name datasets/sft_data/single_image_tiny_247 \
+    --model_name_or_path models/pretrained_models/Qwen/Qwen2.5-VL-7B-Instruct \
+    --per_device_train_batch_size 1 \
+    --gradient_accumulation_steps 1 \
+    --output_dir models/finetuned_models/RisKVA/Qwen2.5-VL-7B-Instruct_SFT_single_image_tiny_247 \
+    --bf16 True\
+    --torch_dtype bfloat16 \
+    --use_peft \
+    --lora_target_modules all-linear \
+    --attn_implementation eager \
+    --report_to tensorboard
+
+Tensorboard:
+tensorboard --logdir models/finetuned_models/RisKVA
+"""
+
+import io
+import os
+import zipfile
+
+import torch
+from datasets import DatasetDict, load_dataset # type: ignore
+from huggingface_hub import hf_hub_download, list_repo_files
+from PIL import Image
+from transformers import AutoModelForImageTextToText, AutoProcessor
+
+from trl import ( # type: ignore
     ModelConfig,
     ScriptArguments,
     SFTConfig,
@@ -41,89 +124,73 @@ from trl import (  # type: ignore
 )
 
 
-@dataclass
-class CustomScriptArguments(ScriptArguments):
-    """扩展的脚本参数，添加自定义聊天模板配置"""
-    prompt_config_path: Optional[str] = field(
-        default="configs/prompts/building_risk_prompts.yaml",
-        metadata={"help": "Path to the custom prompt configuration file"}
-    )
-    use_custom_template: bool = field(
-        default=True,
-        metadata={"help": "Whether to use custom chat template from config file"}
-    )
+# For multi-image example
+def process_vision_info(messages: list[dict]) -> list[Image.Image]:
+    image_inputs = []
+    for msg in messages:
+        content = msg.get("content", [])
+        if not isinstance(content, list):
+            content = [content]
+
+        for element in content:
+            if isinstance(element, dict) and ("image" in element or element.get("type") == "image"):
+                if "image" in element:
+                    image = element["image"]
+                else:
+                    image = element
+                if image is not None:
+                    image = Image.open(io.BytesIO(image["bytes"]))
+                    image_inputs.append(image.convert("RGB"))
+    return image_inputs
 
 
-def load_prompt_config(config_path: str) -> dict:
-    """加载提示词配置文件"""
-    if not os.path.exists(config_path):
-        raise FileNotFoundError(f"Prompt config file not found: {config_path}")
-    
-    with open(config_path, 'r', encoding='utf-8') as f:
-        config = yaml.safe_load(f)
-    return config
+def format_data(samples: dict[str, any]) -> dict[str, list]:
+    formatted_samples = {"messages": []}
+    for cont in range(len(samples["question"])):
+        images = []
+        for img_path in samples["input_image_path"][cont]:
+            try:
+                with open(img_path, "rb") as f:
+                    img_bytes = f.read()
+                image = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+                images.append({"type": "image", "image": image})
+            except Exception as e:
+                print(f"Error processing image {img_path}: {e}")
+                continue
+
+        formatted_samples["messages"].append(
+            [
+                {"role": "system", "content": [{"type": "text", "text": samples["context"][cont]}]},
+                {"role": "user", "content": images + [{"type": "text", "text": samples["question"][cont]}]},
+                {"role": "assistant", "content": [{"type": "text", "text": samples["output"][cont]}]},
+            ]
+        )
+    return formatted_samples
 
 
-def create_custom_chat_template(messages: list, prompt_config: dict) -> str:
-    """
-    使用自定义配置创建聊天模板
-    
-    Args:
-        messages: 原始消息列表
-        prompt_config: 提示词配置
-    
-    Returns:
-        格式化后的聊天文本
-    """
-    # 获取系统提示词
-    system_prompt = prompt_config.get('system_prompts', {}).get('building_defect_expert', '')
-    
-    # 构建对话
-    formatted_messages = []
-    
-    # 添加系统消息
-    if system_prompt:
-        formatted_messages.append(f"<|im_start|>system\n{system_prompt}<|im_end|>")
-    
-    # 处理用户和助手消息
-    for message in messages:
-        role = message.get('role', 'user')
-        content = message.get('content', '')
-        
-        if role == 'user':
-            # 如果用户消息为空或只包含图片，使用默认分析请求
-            if not content or content.strip() == "":
-                content = prompt_config.get('user_prompts', {}).get('standard_analysis', 
-                                                                   '请分析这张图片中的建筑工程问题。')
-            formatted_messages.append(f"<|im_start|>user\n{content}<|im_end|>")
-        elif role == 'assistant':
-            formatted_messages.append(f"<|im_start|>assistant\n{content}<|im_end|>")
-    
-    # 如果最后一个消息不是助手消息，添加助手开始标记
-    if messages and messages[-1].get('role') != 'assistant':
-        formatted_messages.append("<|im_start|>assistant\n")
-    
-    return "\n".join(formatted_messages)
+# For multi-image example
+def prepare_dataset(dataset: DatasetDict, dataset_name: str, dataset_train_split: str) -> DatasetDict:
+    all_files = list_repo_files(dataset_name, repo_type="dataset")
+    zip_files = [f for f in all_files if f.endswith(".zip")]
+
+    for zip_filename in zip_files:
+        zip_path = hf_hub_download(repo_id=dataset_name, filename=zip_filename, repo_type="dataset")
+        extract_folder = zip_filename.replace(".zip", "")
+        os.makedirs(extract_folder, exist_ok=True)
+
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            zip_ref.extractall(extract_folder)
+
+    dataset = dataset.map(format_data, batched=True, batch_size=4, num_proc=16)
+    return dataset
 
 
-if __name__ == "__main__":
-    # parser = TrlParser((ScriptArguments, SFTConfig, ModelConfig))
-    parser = TrlParser((CustomScriptArguments, SFTConfig, ModelConfig))
+def main():
+    parser = TrlParser((ScriptArguments, SFTConfig, ModelConfig))
     script_args, training_args, model_args = parser.parse_args_and_config()
     training_args.gradient_checkpointing_kwargs = dict(use_reentrant=False)
     training_args.remove_unused_columns = False
     training_args.dataset_kwargs = {"skip_prepare_dataset": True}
-
-    # 加载自定义提示词配置
-    prompt_config = None
-    if script_args.use_custom_template:
-        try:
-            prompt_config = load_prompt_config(script_args.prompt_config_path)
-            print(f"✅ 成功加载自定义提示词配置: {script_args.prompt_config_path}")
-        except Exception as e:
-            print(f"⚠️ 加载自定义提示词配置失败: {e}")
-            print("使用默认聊天模板")
-            script_args.use_custom_template = False
 
     ################
     # Model, Tokenizer & Processor
@@ -134,7 +201,7 @@ if __name__ == "__main__":
     quantization_config = get_quantization_config(model_args)
     model_kwargs = dict(
         revision=model_args.model_revision,
-        attn_implementation=model_args.attn_implementation,  # todo: flash attention
+        attn_implementation=model_args.attn_implementation,
         torch_dtype=torch_dtype,
         device_map=get_kbit_device_map() if quantization_config is not None else None,
         quantization_config=quantization_config,
@@ -142,45 +209,120 @@ if __name__ == "__main__":
     processor = AutoProcessor.from_pretrained(
         model_args.model_name_or_path, trust_remote_code=model_args.trust_remote_code
     )
+    processor.tokenizer.padding_side = "right"
 
-    model = AutoModelForVision2Seq.from_pretrained(
+    model = AutoModelForImageTextToText.from_pretrained(
         model_args.model_name_or_path, trust_remote_code=model_args.trust_remote_code, **model_kwargs
     )
 
-    ################
-    # Create a data collator to encode text and image pairs
-    ################
     def collate_fn(examples):
-        # Get the texts and images, and apply the chat template
-        if script_args.use_custom_template and prompt_config:
-            # 使用自定义聊天模板
-            texts = [create_custom_chat_template(example["messages"], prompt_config) for example in examples]
-        else:
-            # 使用默认聊天模板
-            texts = [processor.apply_chat_template(example["messages"], tokenize=False) for example in examples]
+        # 转换数据格式：conversations -> messages
+        processed_examples = []
+        for example in examples:
+            # 检查是否有conversations字段（本地数据集）
+            if "conversations" in example:
+                # 转换conversations格式到messages格式
+                messages = []
+                for conv in example["conversations"]:
+                    role = conv["from"]
+                    if role == "system":
+                        role = "system"
+                    elif role == "user":
+                        role = "user" 
+                    elif role == "assistant":
+                        role = "assistant"
+                    
+                    content = conv["value"]
+                    # 创建标准的messages格式
+                    if "<image>" in content:
+                        # 包含图片的用户消息
+                        text_content = content.replace("<image>", "").strip()
+                        messages.append({
+                            "role": role,
+                            "content": [
+                                {"type": "image", "image": None},  # 图片稍后处理
+                                {"type": "text", "text": text_content}
+                            ]
+                        })
+                    else:
+                        # 纯文本消息
+                        messages.append({
+                            "role": role,
+                            "content": [{"type": "text", "text": content}]
+                        })
+                
+                # 处理图片
+                if "image_base64" in example and example["image_base64"]:
+                    import base64
+                    from io import BytesIO
+                    # 解码base64图片
+                    image_data = base64.b64decode(example["image_base64"])
+                    image = Image.open(BytesIO(image_data)).convert("RGB")
+                    images = [image]
+                else:
+                    images = []
+                
+                processed_examples.append({"messages": messages, "images": images})
+            else:
+                # 使用原有的格式
+                processed_examples.append(example)
         
-        images = [example["images"] for example in examples]
-        if isinstance(model, LlavaForConditionalGeneration):
-            # LLava1.5 does not support multiple images
-            images = [image[0] for image in images]
+        # 生成文本
+        texts = [
+            processor.apply_chat_template(example["messages"], tokenize=False, add_generation_prompt=False).strip()
+            for example in processed_examples
+        ]
+        
+        # 处理图片
+        if "images" in processed_examples[0]:  # single-image
+            images = [example["images"] for example in processed_examples]
+        else:  # multi-image
+            images = [process_vision_info(example["messages"]) for example in processed_examples]
 
         # Tokenize the texts and process the images
-        batch = processor(text=texts, images=images, return_tensors="pt", padding=True)
+        batch = processor(
+            text=texts, images=images, return_tensors="pt", padding=True
+        )  # Encode texts and images into tensors
 
         # The labels are the input_ids, and we mask the padding tokens in the loss computation
-        labels = batch["input_ids"].clone()
-        labels[labels == processor.tokenizer.pad_token_id] = -100  #
-        # Ignore the image token index in the loss computation (model specific)
-        image_token_id = processor.tokenizer.convert_tokens_to_ids(processor.image_token)
-        labels[labels == image_token_id] = -100
-        batch["labels"] = labels
+        labels = batch["input_ids"].clone()  # Clone input IDs for labels
+        
+        # Mask padding tokens
+        labels[labels == processor.tokenizer.pad_token_id] = -100
+        
+        # Try to mask image tokens with different possible token names
+        possible_image_tokens = ["boi_token", "image_token", "<image>", "<img>", "<vision_start>", "<|image_start|>"]
+        for token_name in possible_image_tokens:
+            try:
+                if token_name in processor.tokenizer.special_tokens_map:
+                    image_token_id = processor.tokenizer.convert_tokens_to_ids(
+                        processor.tokenizer.special_tokens_map[token_name]
+                    )
+                    labels[labels == image_token_id] = -100
+                    break
+                elif hasattr(processor.tokenizer, 'convert_tokens_to_ids'):
+                    # Try direct token conversion
+                    image_token_id = processor.tokenizer.convert_tokens_to_ids(token_name)
+                    if image_token_id != processor.tokenizer.unk_token_id:
+                        labels[labels == image_token_id] = -100
+                        break
+            except (KeyError, AttributeError):
+                continue
+        
+        # Also try to mask commonly used image token IDs
+        possible_image_token_ids = [262144]
+        for token_id in possible_image_token_ids:
+            labels[labels == token_id] = -100
 
-        return batch
+        batch["labels"] = labels
+        return batch  # Return the prepared batch
 
     ################
     # Dataset
     ################
     dataset = load_dataset(script_args.dataset_name, name=script_args.dataset_config)
+    if script_args.dataset_name == "FanqingM/MMIU-Benchmark":
+        dataset = prepare_dataset(dataset, script_args.dataset_name, script_args.dataset_train_split)
 
     ################
     # Training
@@ -203,3 +345,7 @@ if __name__ == "__main__":
         trainer.push_to_hub(dataset_name=script_args.dataset_name)
         if trainer.accelerator.is_main_process:
             processor.push_to_hub(training_args.hub_model_id)
+
+
+if __name__ == "__main__":
+    main()

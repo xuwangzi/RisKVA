@@ -27,7 +27,7 @@ def load_prompts_config() -> Dict[str, Any]:
     """
     # 获取配置文件路径（相对于当前脚本）
     current_dir = Path(__file__).parent
-    config_path = current_dir.parent.parent / "configs" / "prompts" / "building_risk_prompts.yaml"
+    config_path = current_dir.parent.parent / "configs" / "prompt_configs" / "building_risk_prompts.yaml"
     
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
