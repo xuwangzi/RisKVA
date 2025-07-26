@@ -211,7 +211,7 @@ def create_metadata_csv(matched_data: List[Dict], output_dir: str):
         # 添加CSV数据的所有列
         for key, value in item['data'].items():
             if key != 'source_csv':  # 避免重复
-                row[f'data_{key}'] = value
+                row[f'{key}'] = value
         
         # 添加源文件信息
         row['source_csv'] = item['data'].get('source_csv', '')
@@ -271,98 +271,6 @@ def create_dataset_info(matched_data: List[Dict], output_dir: str, metadata_path
     
     print(f"数据集信息文件创建完成: {info_path}")
     return info_path
-
-
-def create_readme(output_dir: str, total_items: int):
-    """
-    创建README文件
-    
-    Args:
-        output_dir: 输出目录
-        total_items: 数据项总数
-    """
-    readme_content = f"""# 图像-文本数据集
-
-这是一个由图片和CSV数据按顺序匹配生成的数据集。
-
-## 数据集结构
-
-```
-dataset/
-├── images/           # 图片文件目录
-├── data/            # 额外数据文件目录
-├── metadata.csv     # 元数据文件
-├── dataset_info.json # 数据集信息
-└── README.md        # 说明文件
-```
-
-## 基本信息
-
-- **总样本数**: {total_items}
-- **数据格式**: 图像-文本对
-- **图片格式**: 多种格式 (JPG, PNG等)
-
-## 使用方法
-
-### 使用pandas读取
-
-```python
-import pandas as pd
-from PIL import Image
-import os
-
-# 读取元数据
-df = pd.read_csv('metadata.csv')
-
-# 读取第一个样本
-row = df.iloc[0]
-image_path = row['image_path']
-image = Image.open(image_path)
-
-print("图片信息:", image.size)
-print("数据信息:", row)
-```
-
-### 使用Hugging Face datasets
-
-```python
-from datasets import Dataset, Image as HFImage
-import pandas as pd
-
-# 读取元数据
-df = pd.read_csv('metadata.csv')
-
-# 创建数据集
-dataset = Dataset.from_pandas(df)
-dataset = dataset.cast_column('image_path', HFImage())
-
-print(dataset[0])
-```
-
-## 数据格式
-
-每行数据包含：
-- `image_id`: 图片ID
-- `image_path`: 图片在数据集中的路径
-- `original_filename`: 原始文件名
-- `data_*`: CSV中的各个数据列
-- `source_csv`: 数据来源的CSV文件名
-
-## 注意事项
-
-1. 图片和数据是按照文件的自然排序顺序进行匹配的
-2. 如果图片数量与数据行数不匹配，会在控制台输出警告信息
-3. 所有图片都被重命名为统一格式: `XXXXXX_原始文件名`
-
----
-由 get_datasets.py 脚本自动生成
-"""
-
-    readme_path = os.path.join(output_dir, "README.md")
-    with open(readme_path, 'w', encoding='utf-8') as f:
-        f.write(readme_content)
-    
-    print(f"README文件创建完成: {readme_path}")
 
 
 def main():
@@ -460,9 +368,6 @@ def main():
     
     # 创建数据集信息
     create_dataset_info(matched_data, output_dir, metadata_path)
-    
-    # 创建README
-    create_readme(output_dir, len(matched_data))
     
     print("\n" + "=" * 80)
     print("✅ 数据集创建完成！")

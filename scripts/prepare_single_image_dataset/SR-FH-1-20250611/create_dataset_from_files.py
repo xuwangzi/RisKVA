@@ -37,7 +37,6 @@ try:
         copy_images_to_dataset,
         create_metadata_csv,
         create_dataset_info,
-        create_readme,
         create_dataset_structure
     )
     
@@ -182,9 +181,6 @@ def step2_create_dataset(temp_dir: str, output_dir: str) -> bool:
     
     # 创建数据集信息
     create_dataset_info(matched_data, output_dir, metadata_path)
-    
-    # 创建README
-    create_readme(output_dir, len(matched_data))
     
     print(f"\n📊 数据集统计:")
     print(f"  总样本数: {len(matched_data)}")

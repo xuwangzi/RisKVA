@@ -89,13 +89,15 @@ def process_excel_data(df):
                     缺陷描述 = clean_text(next_row.iloc[1])
             
             processed_data.append({
-                '序号': 序号,
-                '风险': 风险,
-                '纠正和预防建议': 纠正和预防建议,
-                '风险等级': 风险等级,
-                '原': 原,
-                '现': 现,
-                '缺陷描述': 缺陷描述
+                'file_id': "SR-FH-1-20250611",
+                'defect_index': 序号,
+                'defect_description_text': 缺陷描述,
+                'risk_detail': 风险,
+                'correction_suggestion': 纠正和预防建议,
+                'correction_status': "已整改",
+                # '风险等级': 风险等级,
+                'risk_level_original': 原,
+                'risk_level_current': 现,
             })
             
             # 跳过下一行（缺陷描述行）

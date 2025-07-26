@@ -216,68 +216,14 @@ def main():
     )
 
     def collate_fn(examples):
-        # 转换数据格式：conversations -> messages
-        processed_examples = []
-        for example in examples:
-            # 检查是否有conversations字段（本地数据集）
-            if "conversations" in example:
-                # 转换conversations格式到messages格式
-                messages = []
-                for conv in example["conversations"]:
-                    role = conv["from"]
-                    if role == "system":
-                        role = "system"
-                    elif role == "user":
-                        role = "user" 
-                    elif role == "assistant":
-                        role = "assistant"
-                    
-                    content = conv["value"]
-                    # 创建标准的messages格式
-                    if "<image>" in content:
-                        # 包含图片的用户消息
-                        text_content = content.replace("<image>", "").strip()
-                        messages.append({
-                            "role": role,
-                            "content": [
-                                {"type": "image", "image": None},  # 图片稍后处理
-                                {"type": "text", "text": text_content}
-                            ]
-                        })
-                    else:
-                        # 纯文本消息
-                        messages.append({
-                            "role": role,
-                            "content": [{"type": "text", "text": content}]
-                        })
-                
-                # 处理图片
-                if "image_base64" in example and example["image_base64"]:
-                    import base64
-                    from io import BytesIO
-                    # 解码base64图片
-                    image_data = base64.b64decode(example["image_base64"])
-                    image = Image.open(BytesIO(image_data)).convert("RGB")
-                    images = [image]
-                else:
-                    images = []
-                
-                processed_examples.append({"messages": messages, "images": images})
-            else:
-                # 使用原有的格式
-                processed_examples.append(example)
-        
-        # 生成文本
         texts = [
             processor.apply_chat_template(example["messages"], tokenize=False, add_generation_prompt=False).strip()
-            for example in processed_examples
+            for example in examples
         ]
-        
-        # 处理图片
-        if "images" in processed_examples[0]:  # single-image
-            images = [example["images"] for example in processed_examples]
+        if "images" in examples[0]:  # single-image
+            images = [[img.convert("RGB") for img in example["images"]] for example in examples]
         else:  # multi-image
-            images = [process_vision_info(example["messages"]) for example in processed_examples]
+            images = [process_vision_info(example["messages"]) for example in examples]
 
         # Tokenize the texts and process the images
         batch = processor(
@@ -286,33 +232,14 @@ def main():
 
         # The labels are the input_ids, and we mask the padding tokens in the loss computation
         labels = batch["input_ids"].clone()  # Clone input IDs for labels
-        
-        # Mask padding tokens
+        # Mask image tokens
+        image_token_id = [
+            processor.tokenizer.convert_tokens_to_ids(processor.tokenizer.special_tokens_map["boi_token"])
+        ]
+        # Mask tokens for not being used in the loss computation
         labels[labels == processor.tokenizer.pad_token_id] = -100
-        
-        # Try to mask image tokens with different possible token names
-        possible_image_tokens = ["boi_token", "image_token", "<image>", "<img>", "<vision_start>", "<|image_start|>"]
-        for token_name in possible_image_tokens:
-            try:
-                if token_name in processor.tokenizer.special_tokens_map:
-                    image_token_id = processor.tokenizer.convert_tokens_to_ids(
-                        processor.tokenizer.special_tokens_map[token_name]
-                    )
-                    labels[labels == image_token_id] = -100
-                    break
-                elif hasattr(processor.tokenizer, 'convert_tokens_to_ids'):
-                    # Try direct token conversion
-                    image_token_id = processor.tokenizer.convert_tokens_to_ids(token_name)
-                    if image_token_id != processor.tokenizer.unk_token_id:
-                        labels[labels == image_token_id] = -100
-                        break
-            except (KeyError, AttributeError):
-                continue
-        
-        # Also try to mask commonly used image token IDs
-        possible_image_token_ids = [262144]
-        for token_id in possible_image_token_ids:
-            labels[labels == token_id] = -100
+        labels[labels == image_token_id] = -100
+        labels[labels == 262144] = -100
 
         batch["labels"] = labels
         return batch  # Return the prepared batch
@@ -321,8 +248,8 @@ def main():
     # Dataset
     ################
     dataset = load_dataset(script_args.dataset_name, name=script_args.dataset_config)
-    if script_args.dataset_name == "FanqingM/MMIU-Benchmark":
-        dataset = prepare_dataset(dataset, script_args.dataset_name, script_args.dataset_train_split)
+    # if script_args.dataset_name == "FanqingM/MMIU-Benchmark":
+    #     dataset = prepare_dataset(dataset, script_args.dataset_name, script_args.dataset_train_split)
 
     ################
     # Training

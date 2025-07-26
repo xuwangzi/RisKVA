@@ -12,12 +12,16 @@ from PIL import Image
 import argparse
 from pathlib import Path
 
+def get_script_directory():
+    """获取脚本所在目录"""
+    return os.path.dirname(os.path.abspath(__file__))
 
 def validate_directory_structure(dataset_dir):
     """验证数据集目录结构"""
     print("🔍 检查目录结构...")
     
-    required_files = ['metadata.csv', 'dataset_info.json', 'README.md']
+    # required_files = ['metadata.csv', 'dataset_info.json', 'README.md']
+    required_files = ['metadata.csv', 'dataset_info.json']
     required_dirs = ['images']
     
     issues = []
@@ -185,7 +189,7 @@ def test_huggingface_compatibility(dataset_dir):
 def main():
     parser = argparse.ArgumentParser(description="验证数据集格式")
     parser.add_argument("dataset_dir", nargs='?', 
-                       default="./dataset",
+                       default=get_script_directory() + "/dataset",
                        help="数据集目录路径")
     
     args = parser.parse_args()
