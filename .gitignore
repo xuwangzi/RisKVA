@@ -132,6 +132,7 @@ cython_debug/
 
 # 训练日志和输出
 logs/
+experiments/
 runs/
 outputs/
 results/

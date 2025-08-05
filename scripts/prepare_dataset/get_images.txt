@@ -1,0 +1,4 @@
+# Linux 命令行工具
+# pdfimages（Poppler 工具）
+sudo apt install poppler-utils
+pdfimages -all PR-9-20250512.pdf PR-9-20250512 # PR-9-20250512 是前缀
