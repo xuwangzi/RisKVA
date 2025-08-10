@@ -4,7 +4,8 @@ import re
 from typing import List, Optional, Dict, Union
 from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
 from qwen_vl_utils import process_vision_info
-
+from datasets import load_dataset
+from pathlib import Path
 
 class RiskAssessmentInference:
     """房屋分户检查风险评估推理类"""
@@ -314,45 +315,58 @@ if __name__ == "__main__":
     # print(json.dumps(result, ensure_ascii=False, indent=2))
 
     
+    """ command: 
+    python src/sft_subnunit_risk/inference.py 2>&1 | tee logs/inference_$(date +%Y%m%d_%H%M%S).log
+    """
+
     # 示例2：创建模型实例复用(图像或文本)
 
     pretrained_model_path = "models/pretrained_models/Qwen/Qwen2.5-VL-3B-Instruct"
     finetuned_model_path = "models/finetuned_models/RisKVA/RisKVA-Qwen2.5-VL-3B-Instruct-sft-subunit-risk"
 
-    single_image_paths = ["datasets/RisKVA/Subunit-Risk_original/images/000000_00_SR-FH-1-20250611-000.jpg"]
-    multiple_image_paths = ["datasets/RisKVA/Subunit-Risk_original/images/000010_00_SR-FH-1-20250611-010.jpg", 
-    "datasets/RisKVA/Subunit-Risk_original/images/000010_01_SR-FH-1-20250611-011.jpg", 
-    "datasets/RisKVA/Subunit-Risk_original/images/000010_02_SR-FH-1-20250611-012.jpg"]
-
-    defect_text1 = "厨房墙面防水涂料透底"
-    defect_text2 = "地下车库墙面渗漏3处，渗漏部位详见渗漏分布图"
+    dataset_path = "datasets/RisKVA/Subunit-Risk_original/metadata_with_image.csv"
+    if dataset_path.endswith('.csv'):
+        dataset = load_dataset('csv', data_files=f'{dataset_path}')
+    else:
+        dataset = load_dataset(dataset_path)
 
     # 预训练模型
     pretrained_model = create_inference_model(pretrained_model_path)
-    result1 = pretrained_model.inference_with_images(single_image_paths)
-    result2 = pretrained_model.inference_with_text(defect_text1)
-    result3 = pretrained_model.inference_with_images(multiple_image_paths)
-    result4 = pretrained_model.inference_with_text(defect_text2)
     print("🔍图像推理结果（预训练模型）：")
-    print(json.dumps(result1, ensure_ascii=False, indent=2))
-    print("🔍文本推理结果（预训练模型）：")
-    print(json.dumps(result2, ensure_ascii=False, indent=2))
-    print("🔍图像推理结果（预训练模型）：")
-    print(json.dumps(result3, ensure_ascii=False, indent=2))
-    print("🔍文本推理结果（预训练模型）：")
-    print(json.dumps(result4, ensure_ascii=False, indent=2))
+    for i in range(len(dataset['train'])):
+        print(f"🔍第{i}个样本：")
+        print(dataset['train'][i])
+        # 加载图片
+        images = []
+
+        all_image_paths = dataset['train'][i]['all_image_paths']
+        image_paths = json.loads(all_image_paths)
+
+        base_path = Path(dataset_path).parent if dataset_path.endswith('.csv') else Path(dataset_path)
+        for image_path in image_paths:
+            full_img_path = base_path / image_path
+            images.append(full_img_path)
+
+        result = pretrained_model.inference_with_images(images)
+        print(f"🔍根据第{i}个样本的图像，推理结果：")
+        print(json.dumps(result, ensure_ascii=False, indent=2))
     
     # 微调模型
     finetuned_model = create_inference_model(finetuned_model_path, processor_path=pretrained_model_path)
-    result5 = finetuned_model.inference_with_images(single_image_paths)
-    result6 = finetuned_model.inference_with_text(defect_text1)
-    result7 = finetuned_model.inference_with_images(multiple_image_paths)
-    result8 = finetuned_model.inference_with_text(defect_text2)
     print("🔍图像推理结果（微调模型）：")
-    print(json.dumps(result5, ensure_ascii=False, indent=2))
-    print("🔍文本推理结果（微调模型）：")
-    print(json.dumps(result6, ensure_ascii=False, indent=2))
-    print("🔍图像推理结果（微调模型）：")
-    print(json.dumps(result7, ensure_ascii=False, indent=2))
-    print("🔍文本推理结果（微调模型）：")
-    print(json.dumps(result8, ensure_ascii=False, indent=2))
+    for i in range(len(dataset['train'])):
+        print(f"🔍第{i}个样本：")
+        print(dataset['train'][i])
+        images = []
+
+        all_image_paths = dataset['train'][i]['all_image_paths']
+        image_paths = json.loads(all_image_paths)
+
+        base_path = Path(dataset_path).parent if dataset_path.endswith('.csv') else Path(dataset_path)
+        for image_path in image_paths:
+            full_img_path = base_path / image_path
+            images.append(full_img_path)
+
+        result = finetuned_model.inference_with_images(images)
+        print(f"🔍根据第{i}个样本的图像，推理结果：")
+        print(json.dumps(result, ensure_ascii=False, indent=2))

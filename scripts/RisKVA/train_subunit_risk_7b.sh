@@ -5,6 +5,7 @@
 # =================================================================
 
 set -e  # 遇到错误立即退出
+set -o pipefail # 任何管道失败都退出，避免误报“训练完成”
 
 # 设置输出目录
 DATASET_PATH="datasets/RisKVA/Subunit-Risk_original/metadata.csv"
@@ -26,13 +27,19 @@ echo "输出目录: ${OUTPUT_DIR}"
 echo "========================================"
 
 # 启动训练
+export CLEANUP_EVERY_N=40 # 每N个batch清理一次内存
 accelerate launch \
     --config_file configs/accelerate_configs/deepspeed_zero3.yaml \
     src/sft_subnunit_risk/train.py \
     --dataset_name "${DATASET_PATH}" \
     --model_name_or_path "${PRETRAINED_MODEL_PATH}" \
+    --num_train_epochs 1 \
     --per_device_train_batch_size 4 \
     --gradient_accumulation_steps 8 \
+    --learning_rate 1e-4 \
+    --lr_scheduler_type cosine \
+    --warmup_ratio 0.03 \
+    --seed 42 \
     --output_dir "${OUTPUT_DIR}" \
     --bf16 True \
     --torch_dtype bfloat16 \
