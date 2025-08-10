@@ -30,7 +30,7 @@ echo "========================================"
 export CLEANUP_EVERY_N=32 # 每N个batch清理一次内存
 accelerate launch \
     --config_file configs/accelerate_configs/deepspeed_zero3.yaml \
-    src/sft_subnunit_risk/train.py \
+    src/sft_subunit_risk/train.py \
     --dataset_name "${DATASET_PATH}" \
     --model_name_or_path "${PRETRAINED_MODEL_PATH}" \
     --num_train_epochs 1 \

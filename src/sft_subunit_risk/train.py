@@ -59,7 +59,7 @@ def prepare_dataset(
     dataset_train_split: str, 
     templates: Optional[Dict[str, Any]] = None
 ) -> DatasetDict:
-    """
+    """ todo 1.修改prompt 2.添加图像增强处理
     准备训练数据集，将原始数据转换为模型可用的格式。
     
     Args:

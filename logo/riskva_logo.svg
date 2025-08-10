@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="280" height="100" viewBox="0 0 280 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- ==============================================
+       样式定义和资源
+       ============================================== -->
+  <defs>
+    <!-- CSS样式 -->
+    <style>
+      <![CDATA[
+      .building-primary    { fill: #3B82F6; }
+      .building-secondary  { fill: #1E40AF; }
+      .building-accent     { fill: #2563EB; }
+      .ai-primary         { fill: #4285F4; }
+      .ai-secondary       { fill: #1E40AF; }
+      .ai-nodes           { fill: #AECBFA; }
+      .text-risk          { fill: #FFA500; }
+      .text-primary       { fill: #4285F4; }
+      .shadow             { fill: #1F2937; opacity: 0.1; }
+      .window             { fill: white; opacity: 0.9; }
+      .accent-line        { opacity: 0.7; }
+      .connection         { stroke: #AECBFA; stroke-width: 1.5; opacity: 0.8; fill: none; }
+      .node-outline       { stroke: white; stroke-width: 0.5; }
+      ]]>
+    </style>
+    
+    <!-- 渐变定义 -->
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFA500" stop-opacity="1"/>
+      <stop offset="50%" stop-color="#005A9C" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#4285F4" stop-opacity="1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ==============================================
+       背景
+       ============================================== -->
+  <rect width="280" height="100" rx="8" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+
+  <!-- ==============================================
+       Logo主体 - 建筑群和AI网络
+       ============================================== -->
+  <g id="logo-main" transform="translate(15, 15)">
+    
+    <!-- 建筑阴影 -->
+    <g id="shadows">
+      <rect class="shadow" x="2" y="12" width="35" height="50" rx="2"/>
+      <rect class="shadow" x="40" y="37" width="8" height="25" rx="1"/>
+      <rect class="shadow" x="50" y="27" width="8" height="35" rx="1"/>
+      <rect class="shadow" x="60" y="17" width="8" height="45" rx="1"/>
+    </g>
+
+    <!-- 屋顶系统 -->
+    <g id="roof-system">
+      <polygon class="building-secondary" points="-5,10 75,10 35,0"/>
+      <polygon fill="#374151" points="-3,10 73,10 35,2" opacity="0.6"/>
+    </g>
+
+    <!-- 主建筑 -->
+    <g id="main-building">
+      <!-- 建筑主体 -->
+      <path class="building-primary" d="M 0 10 L 35 10 L 35 58 Q 35 60 33 60 L 2 60 Q 0 60 0 58 Z"/>
+      
+      <!-- 装饰条纹 -->
+      <rect class="building-accent accent-line" x="0" y="25" width="35" height="2"/>
+      <rect class="building-accent accent-line" x="0" y="45" width="35" height="2"/>
+      
+      <!-- 窗户网格 -->
+      <g id="main-windows">
+        <rect class="window" x="4" y="15" width="3" height="4" rx="0.5"/>
+        <rect class="window" x="9" y="15" width="3" height="4" rx="0.5"/>
+        <rect class="window" x="4" y="30" width="3" height="4" rx="0.5"/>
+        <rect class="window" x="9" y="30" width="3" height="4" rx="0.5"/>
+        <rect class="window" x="4" y="50" width="3" height="4" rx="0.5"/>
+        <rect class="window" x="9" y="50" width="3" height="4" rx="0.5"/>
+      </g>
+    </g>
+
+    <!-- AI智能网络 -->
+    <g id="ai-network">
+      <!-- 连接线网络 -->
+      <g id="connections">
+        <line class="connection" x1="21" y1="25" x2="26" y2="30"/>
+        <line class="connection" x1="21" y1="25" x2="26" y2="20"/>
+        <line class="connection" x1="26" y1="30" x2="30" y2="35"/>
+        <line class="connection" x1="26" y1="20" x2="30" y2="25"/>
+        <line class="connection" x1="21" y1="45" x2="26" y2="40"/>
+        <line class="connection" x1="26" y1="40" x2="30" y2="35"/>
+      </g>
+      
+      <!-- 主控节点 -->
+      <g id="primary-nodes">
+        <circle class="ai-secondary node-outline" cx="21" cy="25" r="3"/>
+        <circle class="ai-primary node-outline" cx="21" cy="45" r="3"/>
+        <circle class="ai-primary node-outline" cx="30" cy="25" r="2.5"/>
+        <circle class="ai-secondary node-outline" cx="30" cy="35" r="3.5"/>
+      </g>
+      
+      <!-- 处理节点 -->
+      <g id="processing-nodes">
+        <circle class="ai-nodes" cx="26" cy="20" r="2"/>
+        <circle class="ai-nodes" cx="26" cy="30" r="2"/>
+        <circle class="ai-nodes" cx="26" cy="40" r="2"/>
+      </g>
+    </g>
+
+    <!-- 建筑群组 -->
+    <g id="building-cluster">
+      <!-- 第一栋建筑 -->
+      <g id="building-1">
+        <rect class="building-primary" x="38" y="35" width="8" height="25" rx="1"/>
+        <rect class="building-accent accent-line" x="38" y="45" width="8" height="1"/>
+        <!-- 窗户 -->
+        <rect class="window" x="39" y="38" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="43" y="38" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="39" y="48" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="43" y="48" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="39" y="54" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="43" y="54" width="2" height="3" rx="0.3"/>
+      </g>
+      
+      <!-- 第二栋建筑 -->
+      <g id="building-2">
+        <rect class="building-secondary" x="48" y="25" width="8" height="35" rx="1"/>
+        <rect fill="#1D4ED8" class="accent-line" x="48" y="35" width="8" height="1"/>
+        <rect fill="#1D4ED8" class="accent-line" x="48" y="50" width="8" height="1"/>
+        <!-- 装饰元素 -->
+        <rect class="building-primary" x="52" y="25" width="0.5" height="35" opacity="0.5"/>
+        <!-- 窗户 -->
+        <rect class="window" x="49" y="28" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="53" y="28" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="49" y="38" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="53" y="38" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="49" y="48" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="53" y="48" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="49" y="54" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="53" y="54" width="2" height="3" rx="0.3"/>
+      </g>
+      
+      <!-- 第三栋建筑 -->
+      <g id="building-3">
+        <rect class="building-primary" x="58" y="15" width="8" height="45" rx="1"/>
+        <rect class="building-accent accent-line" x="58" y="25" width="8" height="1"/>
+        <rect class="building-accent accent-line" x="58" y="40" width="8" height="1"/>
+        <!-- 窗户 -->
+        <rect class="window" x="59" y="18" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="63" y="18" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="59" y="28" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="63" y="28" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="59" y="38" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="63" y="38" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="59" y="48" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="63" y="48" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="59" y="54" width="2" height="3" rx="0.3"/>
+        <rect class="window" x="63" y="54" width="2" height="3" rx="0.3"/>
+      </g>
+    </g>
+
+    <!-- 环境装饰 -->
+    <g id="environment">
+      <line x1="-5" y1="60" x2="75" y2="60" stroke="#E5E7EB" stroke-width="1"/>
+      <line x1="-5" y1="62" x2="75" y2="62" stroke="#E5E7EB" stroke-width="0.5" opacity="0.5"/>
+    </g>
+  </g>
+
+  <!-- ==============================================
+       文字Logo
+       ============================================== -->
+  <g id="text-logo">
+    <!-- 主标题 -->
+    <text x="110" y="35" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="bold">
+      <tspan class="text-risk">Ris</tspan><tspan class="text-primary">KVA</tspan>
+    </text>
+    
+    <!-- 副标题 -->
+    <text x="110" y="52" font-family="Arial, Helvetica, sans-serif" font-size="10" 
+          fill="#6B7280" font-weight="normal">
+      Risk Assessment VLM Assistant
+    </text>
+    
+    <!-- 装饰下划线 -->
+    <rect x="110" y="56" width="85" height="2" fill="url(#textGradient)" rx="1"/>
+  </g>
+
+  <!-- ==============================================
+       版权信息
+       ============================================== -->
+  <text x="110" y="75" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="#9CA3AF">
+    FDU CPIC 合作项目
+  </text>
+</svg>
