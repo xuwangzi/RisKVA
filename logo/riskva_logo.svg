@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="280" height="100" viewBox="0 0 280 100" xmlns="http://www.w3.org/2000/svg">
+<svg width="260" height="90" viewBox="0 0 260 90" xmlns="http://www.w3.org/2000/svg">
   <!-- ==============================================
        样式定义和资源
        ============================================== -->
@@ -17,6 +17,7 @@
       .text-primary       { fill: #4285F4; }
       .shadow             { fill: #1F2937; opacity: 0.1; }
       .window             { fill: white; opacity: 0.9; }
+      .window-yellow      { fill: #FFA500; }
       .accent-line        { opacity: 0.7; }
       .connection         { stroke: #AECBFA; stroke-width: 1.5; opacity: 0.8; fill: none; }
       .node-outline       { stroke: white; stroke-width: 0.5; }
@@ -34,7 +35,7 @@
   <!-- ==============================================
        背景
        ============================================== -->
-  <rect width="280" height="100" rx="8" fill="white" stroke="#E5E7EB" stroke-width="1"/>
+  <rect width="260" height="90" rx="8" fill="white" stroke="#E5E7EB" stroke-width="1"/>
 
   <!-- ==============================================
        Logo主体 - 建筑群和AI网络
@@ -51,8 +52,7 @@
 
     <!-- 屋顶系统 -->
     <g id="roof-system">
-      <polygon class="building-secondary" points="-5,10 75,10 35,0"/>
-      <polygon fill="#374151" points="-3,10 73,10 35,2" opacity="0.6"/>
+      <path fill="url(#textGradient)" d="M -8 10 Q -10 8 -8 4 L 33 -4 Q 35 -6 37 -4 L 78 4 Q 80 8 78 10 Z"/>
     </g>
 
     <!-- 主建筑 -->
@@ -66,11 +66,11 @@
       
       <!-- 窗户网格 -->
       <g id="main-windows">
-        <rect class="window" x="4" y="15" width="3" height="4" rx="0.5"/>
+        <rect class="window-yellow" x="4" y="15" width="3" height="4" rx="0.5"/>
         <rect class="window" x="9" y="15" width="3" height="4" rx="0.5"/>
         <rect class="window" x="4" y="30" width="3" height="4" rx="0.5"/>
-        <rect class="window" x="9" y="30" width="3" height="4" rx="0.5"/>
-        <rect class="window" x="4" y="50" width="3" height="4" rx="0.5"/>
+        <rect class="window-yellow" x="9" y="30" width="3" height="4" rx="0.5"/>
+        <rect class="window-yellow" x="4" y="50" width="3" height="4" rx="0.5"/>
         <rect class="window" x="9" y="50" width="3" height="4" rx="0.5"/>
       </g>
     </g>
@@ -110,12 +110,12 @@
         <rect class="building-primary" x="38" y="35" width="8" height="25" rx="1"/>
         <rect class="building-accent accent-line" x="38" y="45" width="8" height="1"/>
         <!-- 窗户 -->
-        <rect class="window" x="39" y="38" width="2" height="3" rx="0.3"/>
+        <rect class="window-yellow" x="39" y="38" width="2" height="3" rx="0.3"/>
         <rect class="window" x="43" y="38" width="2" height="3" rx="0.3"/>
         <rect class="window" x="39" y="48" width="2" height="3" rx="0.3"/>
         <rect class="window" x="43" y="48" width="2" height="3" rx="0.3"/>
         <rect class="window" x="39" y="54" width="2" height="3" rx="0.3"/>
-        <rect class="window" x="43" y="54" width="2" height="3" rx="0.3"/>
+        <rect class="window-yellow" x="43" y="54" width="2" height="3" rx="0.3"/>
       </g>
       
       <!-- 第二栋建筑 -->
@@ -126,13 +126,13 @@
         <!-- 装饰元素 -->
         <rect class="building-primary" x="52" y="25" width="0.5" height="35" opacity="0.5"/>
         <!-- 窗户 -->
-        <rect class="window" x="49" y="28" width="2" height="3" rx="0.3"/>
+        <rect class="window-yellow" x="49" y="28" width="2" height="3" rx="0.3"/>
         <rect class="window" x="53" y="28" width="2" height="3" rx="0.3"/>
-        <rect class="window" x="49" y="38" width="2" height="3" rx="0.3"/>
+        <rect class="window-yellow" x="49" y="38" width="2" height="3" rx="0.3"/>
         <rect class="window" x="53" y="38" width="2" height="3" rx="0.3"/>
         <rect class="window" x="49" y="48" width="2" height="3" rx="0.3"/>
-        <rect class="window" x="53" y="48" width="2" height="3" rx="0.3"/>
-        <rect class="window" x="49" y="54" width="2" height="3" rx="0.3"/>
+        <rect class="window-yellow" x="53" y="48" width="2" height="3" rx="0.3"/>
+        <rect class="window-yellow" x="49" y="54" width="2" height="3" rx="0.3"/>
         <rect class="window" x="53" y="54" width="2" height="3" rx="0.3"/>
       </g>
       
@@ -142,16 +142,16 @@
         <rect class="building-accent accent-line" x="58" y="25" width="8" height="1"/>
         <rect class="building-accent accent-line" x="58" y="40" width="8" height="1"/>
         <!-- 窗户 -->
-        <rect class="window" x="59" y="18" width="2" height="3" rx="0.3"/>
+        <rect class="window-yellow" x="59" y="18" width="2" height="3" rx="0.3"/>
         <rect class="window" x="63" y="18" width="2" height="3" rx="0.3"/>
         <rect class="window" x="59" y="28" width="2" height="3" rx="0.3"/>
         <rect class="window" x="63" y="28" width="2" height="3" rx="0.3"/>
-        <rect class="window" x="59" y="38" width="2" height="3" rx="0.3"/>
-        <rect class="window" x="63" y="38" width="2" height="3" rx="0.3"/>
+        <rect class="window-yellow" x="59" y="38" width="2" height="3" rx="0.3"/>
+        <rect class="window-yellow" x="63" y="38" width="2" height="3" rx="0.3"/>
         <rect class="window" x="59" y="48" width="2" height="3" rx="0.3"/>
-        <rect class="window" x="63" y="48" width="2" height="3" rx="0.3"/>
+        <rect class="window-yellow" x="63" y="48" width="2" height="3" rx="0.3"/>
         <rect class="window" x="59" y="54" width="2" height="3" rx="0.3"/>
-        <rect class="window" x="63" y="54" width="2" height="3" rx="0.3"/>
+        <rect class="window-yellow" x="63" y="54" width="2" height="3" rx="0.3"/>
       </g>
     </g>
 
@@ -167,24 +167,24 @@
        ============================================== -->
   <g id="text-logo">
     <!-- 主标题 -->
-    <text x="110" y="35" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="bold">
-      <tspan class="text-risk">Ris</tspan><tspan class="text-primary">KVA</tspan>
+    <text x="110" y="38" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="bold" fill="url(#textGradient)">
+      RisKVA
     </text>
     
     <!-- 副标题 -->
-    <text x="110" y="52" font-family="Arial, Helvetica, sans-serif" font-size="10" 
+    <text x="110" y="55" font-family="Arial, Helvetica, sans-serif" font-size="10" 
           fill="#6B7280" font-weight="normal">
       Risk Assessment VLM Assistant
     </text>
     
     <!-- 装饰下划线 -->
-    <rect x="110" y="56" width="85" height="2" fill="url(#textGradient)" rx="1"/>
+    <rect x="110" y="60" width="85" height="2" fill="url(#textGradient)" rx="1"/>
   </g>
 
   <!-- ==============================================
        版权信息
        ============================================== -->
-  <text x="110" y="75" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="#9CA3AF">
+  <text x="110" y="73" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="#9CA3AF">
     FDU CPIC 合作项目
   </text>
 </svg>
