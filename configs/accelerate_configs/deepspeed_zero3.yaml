@@ -2,10 +2,8 @@ compute_environment: LOCAL_MACHINE
 debug: false
 deepspeed_config:
   deepspeed_multinode_launcher: standard
-  # offload_optimizer_device: cpu # use cpu
-  offload_optimizer_device: cpu # 保留优化器CPU offload（如需进一步降低CPU内存，可切换为 nvme 并配置路径）
-  # offload_param_device: cpu # use cpu
-  offload_param_device: none # 禁用参数CPU offload，减少CPU内存与拷贝压力
+  offload_optimizer_device: cpu # use cpu
+  offload_param_device: cpu # use cpu
   zero3_init_flag: true
   zero3_save_16bit_model: true
   zero_stage: 3

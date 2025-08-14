@@ -119,7 +119,7 @@ bash hfd.sh
 ### 配置文件
 
 - **训练配置**: `configs/accelerate_configs/` - DeepSpeed和多GPU配置
-- **提示词配置**: `configs/prompt_configs/building_risk_prompts.yaml` - 风险检测提示词模板
+- **提示词配置**: `configs/prompt_configs/subunit_risk_prompt.yaml` - 分户检查风险评估提示词模板
 - **环境配置**: 复制`.env.example`到`.env`并配置相关路径
 
 ### 启动命令或运行步骤
@@ -127,19 +127,19 @@ bash hfd.sh
 #### 模型训练
 ```bash
 # 7B模型训练
-bash scripts/RisKVA/train_subunit_risk_7b.sh
+bash scripts/subunit_risk/train/qwen_7b.sh
 
-# 3B模型训练
-bash scripts/RisKVA/train_subunit_risk_3b.sh
+# 3B模型评估
+bash scripts/subunit_risk/eval/qwen_3b.sh
 
 # 使用PEFT进行高效训练
-bash scripts/RisKVA/train_subunit_risk_7b_peft.sh
+bash scripts/subunit_risk/train/qwen_7b_lora.sh
 ```
 
 #### 模型推理
 ```bash
 # Python API调用
-python src/sft_subnunit_risk/inference.py \
+python src/sft_subunit_risk/inference.py \
     --model_path models/finetuned_models/RisKVA/RisKVA-Qwen2.5-VL-7B-Instruct-sft-subunit-risk \
     --image_path path/to/your/image.jpg \
     --output_format json
@@ -218,19 +218,24 @@ RisKVA系统采用模块化设计，主要包含以下核心组件：
    - 数据清理和验证
    - 数据集格式转换
 
-2. **模型训练模块** (`src/sft_subnunit_risk/train.py`)
+2. **模型训练模块** (`src/sft_subunit_risk/train.py`)
    - 多模态数据加载
    - 模型微调训练
    - 内存优化管理
    - 分布式训练协调
 
-3. **推理引擎** (`src/sft_subnunit_risk/inference.py`)
+3. **推理引擎** (`src/sft_subunit_risk/inference.py`)
    - 实时图像分析
    - 批量数据处理
    - 结果格式化输出
    - API接口封装
 
-4. **配置管理** (`configs/`)
+4. **模型评估** (`src/sft_subunit_risk/evaluation.py`)
+   - 风险评估推理
+   - 性能指标计算
+   - 评估结果分析
+
+5. **配置管理** (`configs/`)
    - 训练超参数配置
    - 加速器配置文件
    - 提示词模板管理
@@ -276,22 +281,29 @@ graph TD
 ```
 RisKVA/
 ├── src/                           # 源代码目录
-│   └── sft_subunit_risk/         # 分户风险评估模块
-│       ├── train.py               # 模型训练脚本
-│       └── inference.py           # 推理脚本
+│   ├── sft_subunit_risk/         # 分户风险评估模块
+│   │   ├── train.py               # 模型训练脚本
+│   │   ├── inference.py           # 推理脚本
+│   │   └── evaluation.py          # 模型评估脚本
+│   ├── grpo_subunit_risk/         # GRPO训练模块
+│   └── llava_risk/                # LLaVA相关模块
 ├── scripts/                       # 脚本工具
 │   ├── prepare_dataset/           # 数据预处理工具
-│   └── RisKVA/                    # 训练脚本
+│   └── subunit_risk/              # 分户检查训练评估脚本
+│       ├── train/                 # 训练脚本
+│       └── eval/                  # 评估脚本
 ├── datasets/                      # 数据集目录
 │   └── RisKVA/                    # RisKVA专用数据集
 ├── models/                        # 模型相关文件
 │   ├── pretrained_models/         # 预训练模型
-│   └── finetuned_models/          # 微调后模型
+│   ├── finetuned_models/          # 微调后模型
+│   └── checkpoints/               # 模型检查点
 ├── configs/                       # 配置文件
 │   ├── accelerate_configs/        # 加速器配置
 │   └── prompt_configs/            # 提示词配置
-├── experiments/                   # 实验记录
-├── logs/                         # 训练日志
+├── experiments/                   # 实验记录与模型输出
+├── logs/                         # 训练与评估日志
+├── references/                   # 参考实现和示例代码
 ├── requirements.txt              # 依赖配置
 └── README.md                     # 项目说明
 ```
@@ -323,26 +335,18 @@ RisKVA/
 - [x] ✅ 优化显存和内存的垃圾处理
 - [x] ✅ 使用flashattention优化训练性能
 - [x] ✅ 完善prompt
-- [ ] 📋 图像增强处理
-- [ ] 📋 训练32B模型
+- [x] ✅ 图像增强处理
+- [x] ✅ 清洗数据集
+- [x] ✅ 训练3B/7B模型
+- [x] ✅ 评估3B/7B模型
 
 ### 🚀 下一版本规划 (v1.1)
+- [ ] 📋 复现LLaVA
+- [ ] 📋 PEFT训练代码框架
 - [ ] 📋 GRPO训练代码框架
 - [ ] 📋 使用ligerloss优化训练性能
 - [ ] 📋 Web界面开发
 - [ ] 📋 批量推理性能提升
-
-### 🔧 技术债务
-- [ ] 📋 代码重构：训练流程模块化
-- [ ] 📋 文档完善：API文档生成
-- [ ] 📋 测试覆盖：单元测试添加
-- [ ] 📋 配置管理：环境变量统一
-
-### 📊 性能优化任务
-- [ ] 📋 内存使用优化
-- [ ] 📋 训练速度提升
-- [ ] 📋 推理延迟降低
-- [ ] 📋 模型精度改进
 
 > 💡 **任务状态说明：** ✅ 已完成 | 🔄 进行中 | 📋 待开始
 

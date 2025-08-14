@@ -1,16 +1,16 @@
 #!/bin/bash
 
 # =================================================================
-# RisKVA 子单元风险分析训练脚本 - Qwen2.5-VL-7B-Instruct (内存优化版)
+# RisKVA 子单元风险分析训练脚本 (lora版)
 # =================================================================
 
 set -e  # 遇到错误立即退出
 set -o pipefail # 任何管道失败都退出，避免误报“训练完成”
 
-# 设置输出目录
-DATASET_PATH="datasets/RisKVA/Subunit-Risk_original/metadata.csv"
+# 设置目录
+DATASET_PATH="datasets/RisKVA/Subunit-Risk_original/metadata_cleaned.csv"
 PRETRAINED_MODEL_PATH="models/pretrained_models/Qwen/Qwen2.5-VL-7B-Instruct"
-OUTPUT_DIR="models/finetuned_models/RisKVA/RisKVA-Qwen2.5-VL-7B-Instruct-sft-subunit-risk-peft"
+OUTPUT_DIR="models/finetuned_models/RisKVA/RisKVA-Qwen2.5-VL-7B-Instruct-sft-subunit-risk"
 
 TIMESTAMP=$(date "+%Y%m%d_%H%M%S")
 LOG_DIR="logs/training"
@@ -19,26 +19,18 @@ LOG_DIR="logs/training"
 mkdir -p "${OUTPUT_DIR}"
 mkdir -p "${LOG_DIR}"
 
-echo "========================================"
-echo "开始训练 RisKVA 分户检查风险分析模型"
-echo "模型: Qwen2.5-VL-7B-Instruct"
-echo "时间戳: ${TIMESTAMP}"
-echo "输出目录: ${OUTPUT_DIR}"
-echo "========================================"
+echo -e "✅ 开始训练\n模型: ${PRETRAINED_MODEL_PATH}\n数据: ${DATASET_PATH}\n输出: ${OUTPUT_DIR}" | tee -a "${LOG_DIR}/train_${TIMESTAMP}.log"
 
 # 启动训练
-export CLEANUP_EVERY_N=40 # 每N个batch清理一次内存
+export CLEANUP_EVERY_N=32 # 每N个batch清理一次内存
 accelerate launch \
     --config_file configs/accelerate_configs/deepspeed_zero3.yaml \
-    src/sft_subunit_risk/train.py \
+    src/sft_subunit_risk/train_llava.py \
     --dataset_name "${DATASET_PATH}" \
     --model_name_or_path "${PRETRAINED_MODEL_PATH}" \
     --num_train_epochs 1 \
-    --per_device_train_batch_size 8 \
-    --gradient_accumulation_steps 4 \
-    --learning_rate 1e-4 \
-    --lr_scheduler_type cosine \
-    --warmup_ratio 0.03 \
+    --per_device_train_batch_size 4 \
+    --gradient_accumulation_steps 8 \
     --seed 42 \
     --output_dir "${OUTPUT_DIR}" \
     --bf16 True \
@@ -48,8 +40,8 @@ accelerate launch \
     --save_total_limit 5 \
     --report_to tensorboard \
     --use_peft True \
-    --lora_r 64 \
-    --lora_alpha 128 \
+    --lora_r 32 \
+    --lora_alpha 64 \
     --lora_dropout 0.1 \
     --lora_target_modules q_proj k_proj v_proj o_proj gate_proj up_proj down_proj \
     --lora_task_type CAUSAL_LM \
@@ -57,9 +49,10 @@ accelerate launch \
     --use_dora False \
     2>&1 | tee "${LOG_DIR}/train_subunit_risk_7b_peft_${TIMESTAMP}.log"
     # --gradient_checkpointing \  # 注释掉梯度检查点避免与PEFT+量化冲突
+# todo: 超参数
+    # --learning_rate 1e-4 \
+    # --lr_scheduler_type cosine \
+    # --warmup_ratio 0.03 \
 
-echo "========================================"
-echo "训练完成！"
-echo "模型保存在: ${OUTPUT_DIR}"
-echo "训练日志: ${LOG_DIR}/train_subunit_risk_7b_peft_${TIMESTAMP}.log"
-echo "========================================"
+# -e 选项用于使 echo 支持转义字符（如 \n 实现换行），否则 \n 会被当作普通字符输出
+echo -e "✅ 训练完成！\n模型保存在: ${OUTPUT_DIR}\n训练日志: ${LOG_DIR}/train_${TIMESTAMP}.log" | tee -a "${LOG_DIR}/train_${TIMESTAMP}.log"
