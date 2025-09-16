@@ -32,12 +32,16 @@ RisKVA 是一个基于视觉语言模型的智能风险评估系统，专门用�
 - **智能风险评估**：自动评估缺陷的风险等级和影响程度
 - **专业建议生成**：提供针对性的纠正和预防建议
 - **批量处理能力**：支持大规模工程数据的自动化分析
+- **智能数据分析**：基于LangGraph的自然语言数据库查询和分析
+- **可视化报告**：自动生成数据可视化图表和分析报告
 
 ### 技术栈概述
 - **基础框架**：PyTorch, Transformers, TRL
 - **核心模型**：Qwen2.5-VL系列视觉语言模型
+- **智能体框架**：LangGraph, LangChain, LangSmith
 - **训练加速**：DeepSpeed, PEFT (LoRA), Flash Attention
-- **数据处理**：Datasets, Pandas, PIL
+- **数据处理**：Datasets, Pandas, PIL, PyMySQL
+- **前端界面**：Next.js, React, TypeScript, Tailwind CSS
 - **分布式训练**：Accelerate, 多GPU支持
 - **监控工具**：TensorBoard, Weights & Biases
 
@@ -71,6 +75,13 @@ RisKVA 是一个基于视觉语言模型的智能风险评估系统，专门用�
    - 批量数据处理
    - 多种输入格式支持
    - 灵活的部署选项
+
+6. **数据分析智能体**
+   - 基于LangGraph的智能数据分析
+   - 自然语言数据库查询
+   - 自动数据可视化生成
+   - 多模态数据处理能力
+   - 实时Web交互界面
 
 ## 🛠️ 安装与使用
 
@@ -143,6 +154,30 @@ python src/sft_subunit_risk/inference.py \
     --model_path models/finetuned_models/RisKVA/RisKVA-Qwen2.5-VL-7B-Instruct-sft-subunit-risk \
     --image_path path/to/your/image.jpg \
     --output_format json
+```
+
+#### 数据智能体启动
+
+> 📚 **详细使用说明请参考**：[code/RisKVA/src/data_agent_risk/README.ipynb](src/data_agent_risk/README.ipynb)
+
+
+```bash
+# 进入数据智能体目录
+cd src/data_agent_risk/data_agent
+
+# 安装依赖
+pip install -r requirements.txt
+
+# 配置环境变量（复制.env.example到.env并配置）
+cp .env.example .env
+
+# 启动LangGraph服务
+langgraph dev
+
+# 启动Web聊天界面（新终端）
+cd agent-chat-ui
+pnpm install
+pnpm dev
 ```
 
 ## 🗂️ 数据集
@@ -235,7 +270,14 @@ RisKVA系统采用模块化设计，主要包含以下核心组件：
    - 性能指标计算
    - 评估结果分析
 
-5. **配置管理** (`configs/`)
+5. **数据智能体模块** (`src/data_agent_risk/`)
+   - LangGraph数据分析智能体
+   - MySQL数据库查询工具
+   - 数据可视化生成
+   - Web聊天界面集成
+   - Tavily搜索工具集成
+
+6. **配置管理** (`configs/`)
    - 训练超参数配置
    - 加速器配置文件
    - 提示词模板管理
@@ -285,6 +327,13 @@ RisKVA/
 │   │   ├── train.py               # 模型训练脚本
 │   │   ├── inference.py           # 推理脚本
 │   │   └── evaluation.py          # 模型评估脚本
+│   ├── data_agent_risk/          # 数据分析智能体模块
+│   │   ├── data_agent/           # LangGraph数据智能体
+│   │   │   ├── graph.py           # Agent图结构定义
+│   │   │   ├── langgraph.json     # LangGraph配置文件
+│   │   │   ├── requirements.txt   # 依赖包列表
+│   │   │   └── agent-chat-ui/     # Next.js聊天界面
+│   │   └── README.ipynb          # LangGraph教程文档
 │   ├── grpo_subunit_risk/         # GRPO训练模块
 │   └── llava_risk/                # LLaVA相关模块
 ├── scripts/                       # 脚本工具
@@ -327,7 +376,7 @@ RisKVA/
 
 ## 📝 开发路线图与待办事项
 
-### 🎯 当前版本目标 (v1.0)
+### 🎯 v1.0 版本目标
 - ✅ 基础VLM训练框架搭建
 - ✅ Subunit-Risk数据集集成
 - ✅ Qwen2.5-VL模型适配
@@ -340,15 +389,21 @@ RisKVA/
 - ✅ 训练3B/7B模型
 - ✅ 评估3B/7B模型
 
-### 🚀 下一版本规划 (v2.0)
+### 🚀 v2.0 版本目标
+- ✅ LangGraph数据智能体集成
+- ✅ MySQL数据库查询工具
+- ✅ Next.js聊天界面开发
+- ✅ 数据可视化功能
+- 🔄 知识灌注——室内风险评估
+- 🔄 风险识别脚本
+
+### 🚀 下一版本规划 (v3.0)
+- 📋 复现LLaVA
 - 📋 PEFT训练代码框架
 - 📋 GRPO训练代码框架
 - 📋 使用ligerloss优化训练性能
 - 📋 Web界面开发
 - 📋 批量推理性能提升
-
-### 🚀 下一版本规划 (v3.0)
-- 📋 复现LLaVA
 
 > 💡 **任务状态说明：** ✅ 已完成 | 🔄 进行中 | 📋 待开始
 
