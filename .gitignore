@@ -238,3 +238,6 @@ test_*
 debug_*
 scratch.*
 playground.* 
+
+# Agent Chat UI 组件
+**/agent-chat-ui/

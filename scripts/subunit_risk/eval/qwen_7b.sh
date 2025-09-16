@@ -9,7 +9,7 @@ set -o pipefail # 任何管道失败都退出，避免误报“训练完成”
 
 # 设置目录
 PRETRAINED_MODEL_PATH="models/pretrained_models/Qwen/Qwen2.5-VL-7B-Instruct"
-EVAL_MODEL_PATH="models/finetuned_models/RisKVA/RisKVA-Qwen2.5-VL-7B-Instruct-sft-subunit-risk"
+EVAL_MODEL_PATH="models/finetuned_models/RisKVA/RisKVA-Subunit-7B_image_augmentation_3_epoch"
 DATASET_PATH="datasets/RisKVA/Subunit-Risk_test/metadata.csv"
 
 TIMESTAMP=$(date "+%Y%m%d_%H%M%S")

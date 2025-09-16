@@ -402,7 +402,7 @@ def collate_fn(examples):
     del texts, images, labels
 
     # ♻️ 可选：仅在主进程中每 N 个 batch 清理一次（通过环境变量 CLEANUP_EVERY_N 控制，默认关闭）
-    _perform_optional_cleanup(examples)
+    # _perform_optional_cleanup(examples)
 
     return batch
 

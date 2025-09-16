@@ -28,7 +28,6 @@ accelerate launch \
     src/sft_subunit_risk/train.py \
     --dataset_name "${DATASET_PATH}" \
     --model_name_or_path "${PRETRAINED_MODEL_PATH}" \
-    --num_train_epochs 1 \
     --per_device_train_batch_size 16 \
     --gradient_accumulation_steps 4 \
     --seed 42 \
@@ -42,6 +41,7 @@ accelerate launch \
     --report_to tensorboard \
     2>&1 | tee "${LOG_DIR}/train_${TIMESTAMP}.log"  
 # todo: 超参数
+    # --num_train_epochs 1 \
     # --learning_rate 1e-4 \
     # --lr_scheduler_type cosine \
     # --warmup_ratio 0.03 \
