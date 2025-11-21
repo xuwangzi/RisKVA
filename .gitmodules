@@ -1,3 +1,6 @@
 [submodule "src/dino_subunit_risk/dinov2"]
 	path = src/dino_subunit_risk/dinov2
 	url = git@github.com:facebookresearch/dinov2.git
+[submodule "src/data_agent_risk/data_agent/agent-chat-ui"]
+path = src/data_agent_risk/data_agent/agent-chat-ui
+url = https://github.com/langchain-ai/agent-chat-ui.git
