@@ -22,81 +22,19 @@
 RisKVA 是一个基于视觉语言模型的智能风险评估系统，专门用于建筑工程缺陷检测和风险等级评估。项目致力于通过先进的多模态AI技术，自动化识别建筑工程中的质量缺陷，并提供专业的风险评估和整改建议。
 
 ### 项目目的
-- 提高建筑工程质量检测的效率和准确性
-- 标准化缺陷识别和风险评估流程
-- 减少人工检测的主观性和遗漏风险
-- 为工程质量管理提供智能化解决方案
+- 自动化建筑缺陷识别与风险评估，提高质检效率
+- 统一评估标准，降低人工主观性
+- 生成针对性建议，为工程管理提供决策依据
 
-### 主要功能
-- **多模态缺陷识别**：结合图像和文本信息进行缺陷检测
-- **智能风险评估**：自动评估缺陷的风险等级和影响程度
-- **专业建议生成**：提供针对性的纠正和预防建议
-- **批量处理能力**：支持大规模工程数据的自动化分析
-- **智能数据分析**：基于LangGraph的自然语言数据库查询和分析
-- **可视化报告**：自动生成数据可视化图表和分析报告
+### 核心能力
+- 多模态缺陷识别、风险分级与整改建议一体化
+- 批量推理、报告生成与 LangGraph 数据分析
+- 统一 API/CLI，适配训练、推理与数据清洗全流程
 
-### 技术栈概述
-- **基础框架**：PyTorch, Transformers, TRL
-- **核心模型**：Qwen2.5-VL系列视觉语言模型
-- **智能体框架**：LangGraph, LangChain, LangSmith
-- **训练加速**：DeepSpeed, PEFT (LoRA), Flash Attention
-- **数据处理**：Datasets, Pandas, PIL, PyMySQL
-- **前端界面**：Next.js, React, TypeScript, Tailwind CSS
-- **分布式训练**：Accelerate, 多GPU支持
-- **监控工具**：TensorBoard, Weights & Biases
-
-## ✨ 功能特性
-
-### 核心功能模块
-
-1. **缺陷识别与分类**
-   - 多种建筑缺陷类型自动识别（渗水、开裂、脱落等）
-   - 基于深度学习的图像特征提取
-   - 支持复杂场景下的缺陷定位
-
-2. **风险等级评估**
-   - 五级风险分类体系（A-正常、B-轻微、C-中等、D-严重、E-严重质量行为风险）
-   - 原始风险与当前风险状态对比
-   - 基于行业标准的评估准则
-
-3. **智能建议生成**
-   - 个性化纠正措施建议
-   - 预防性维护指导
-   - 符合工程实践的专业建议
-
-4. **模型训练与优化**
-   - 支持3B、7B、32B等多种规模模型
-   - PEFT技术实现高效微调
-   - 内存优化和梯度检查点
-   - 分布式训练支持
-
-5. **推理引擎**
-   - 实时图像分析
-   - 批量数据处理
-   - 多种输入格式支持
-   - 灵活的部署选项
-
-6. **数据分析智能体**
-   - 基于LangGraph的智能数据分析
-   - 自然语言数据库查询
-   - 自动数据可视化生成
-   - 多模态数据处理能力
-   - 实时Web交互界面
-
-## 🛠️ 安装与使用
-
-### 环境要求
-
-- **硬件要求**
-  - GPU: NVIDIA RTX 3090/4090 或更高 (推荐24GB+ 显存)
-  - CPU: 8核心以上
-  - 内存: 32GB以上
-  - 存储: 100GB可用空间
-
-- **软件环境**
-  - Python 3.8+
-  - CUDA 11.8+
-  - Linux/Ubuntu (推荐)
+### 技术栈速览
+- 模型与训练：PyTorch、Transformers、Qwen2.5-VL、DeepSpeed、PEFT
+- 数据与服务：Datasets、Pandas、LangGraph、LangChain、LangSmith
+- 前端与工具：Next.js、React、Tailwind CSS、TensorBoard、Weights & Biases
 
 ### 安装依赖步骤
 
@@ -119,6 +57,8 @@ pip install -r requirements.txt
 # Flash Attention需要单独安装
 pip install flash-attn --no-build-isolation -v
 ```
+
+> ℹ️ **依赖说明**：包括 `src/dino_subunit_risk/` 在内的所有子模块现已统一使用根目录的 `requirements.txt`。若子模块历史文档提及单独的 `requirements.txt`，请以根依赖为准。
 
 4. **下载预训练模型**
 ```bash
@@ -155,6 +95,32 @@ python src/sft_subunit_risk/inference.py \
     --image_path path/to/your/image.jpg \
     --output_format json
 ```
+
+#### DINOv2 缺陷分类训练/评估
+
+> 📌 `src/dino_subunit_risk/diinov2.py` 提供基于 DINOv2 backbone + MLP 分类头的缺陷分类能力，可作为轻量级表征器或快速验证基线。
+
+```bash
+# 仅训练分类头（默认冻结 backbone）
+python src/dino_subunit_risk/diinov2.py \
+    --model_name dinov2_vitg14 \
+    --state_dict_path models/pretrained_models/dinov2/dinov2_vitg14_reg4_pretrain.pth \
+    --csv_file datasets/Subunit-Risk_v3/metadata_with_image_filterbadcase.csv \
+    --epochs 15 --batch_size 32
+
+# 从 checkpoint 评估，支持 Pass@k 指标
+python src/dino_subunit_risk/diinov2.py \
+    --model_name dinov2_vitg14 \
+    --state_dict_path models/pretrained_models/dinov2/dinov2_vitg14_reg4_pretrain.pth \
+    --eval_from_checkpoint datasets/Subunit-Risk_v3/checkpoints/best_model.pth \
+    --pass_k 3
+```
+
+**模块亮点**
+- 通过 `--freeze_backbone` 控制是否解冻 DINOv2，方便做 LoRA/全参微调实验
+- 自动解析 `metadata_with_image*.csv` 的多图路径字段，支持图像级别 sample 扩增
+- 训练阶段内置准确率、Pass@k 与分类报告输出，便于快速观测缺陷类别学习情况
+- 统一依赖根目录 `requirements.txt`，无需额外安装
 
 #### 数据智能体启动
 
@@ -322,39 +288,33 @@ graph TD
 
 ```
 RisKVA/
-├── src/                           # 源代码目录
-│   ├── sft_subunit_risk/         # 分户风险评估模块
-│   │   ├── train.py               # 模型训练脚本
-│   │   ├── inference.py           # 推理脚本
-│   │   └── evaluation.py          # 模型评估脚本
-│   ├── data_agent_risk/          # 数据分析智能体模块
-│   │   ├── data_agent/           # LangGraph数据智能体
-│   │   │   ├── graph.py           # Agent图结构定义
-│   │   │   ├── langgraph.json     # LangGraph配置文件
-│   │   │   ├── requirements.txt   # 依赖包列表
-│   │   │   └── agent-chat-ui/     # Next.js聊天界面
-│   │   └── README.ipynb          # LangGraph教程文档
-│   ├── grpo_subunit_risk/         # GRPO训练模块
-│   └── llava_risk/                # LLaVA相关模块
-├── scripts/                       # 脚本工具
-│   ├── prepare_dataset/           # 数据预处理工具
-│   └── subunit_risk/              # 分户检查训练评估脚本
-│       ├── train/                 # 训练脚本
-│       └── eval/                  # 评估脚本
-├── datasets/                      # 数据集目录
-│   └── RisKVA/                    # RisKVA专用数据集
-├── models/                        # 模型相关文件
-│   ├── pretrained_models/         # 预训练模型
-│   ├── finetuned_models/          # 微调后模型
-│   └── checkpoints/               # 模型检查点
-├── configs/                       # 配置文件
-│   ├── accelerate_configs/        # 加速器配置
-│   └── prompt_configs/            # 提示词配置
-├── experiments/                   # 实验记录与模型输出
-├── logs/                         # 训练与评估日志
-├── references/                   # 参考实现和示例代码
-├── requirements.txt              # 依赖配置
-└── README.md                     # 项目说明
+├── src/                                # 源代码
+│   ├── sft_subunit_risk/               # Qwen2.5-VL SFT/推理/评估
+│   ├── dino_subunit_risk/              # DINOv2 缺陷分类基线
+│   │   ├── diinov2.py                  # 训练 & 评估脚本
+│   │   └── dinov2/                     # 引入的 DINOv2 源码
+│   ├── data_agent_risk/                # LangGraph 数据智能体
+│   │   ├── data_agent/agent-chat-ui/   # Next.js Web 前端
+│   │   └── README.ipynb                # 教程与说明
+├── scripts/                            # 训练 & 数据处理脚本
+│   └── subunit_risk/
+│       ├── train/                      # 训练入口（如 qwen_7b.sh）
+│       ├── eval/                       # 评估入口
+│       └── prepare_dataset/            # Excel/CSV 预处理工具集
+├── datasets/                           # 数据集
+│   ├── Subunit-Risk_v1/…               # 历史版本
+│   ├── Subunit-Risk_v2/…               # 对应 metadata_with_image.csv
+│   ├── Subunit-Risk_v3/…               # 当前主用数据
+│   └── other-datasets/                 # PR/SR/QILAN 等扩展
+├── models/
+│   ├── pretrained_models/              # Qwen2.5-VL、DINOv2 等权重
+│   ├── finetuned_models/               # RisKVA 微调结果
+│   └── checkpoints/                    # 中间断点
+├── checkpoints/                        # DINOV2 等额外 checkpoint
+├── configs/                            # 加速器/Prompt 配置
+├── requirements.txt                    # 统一依赖
+├── README.md                           # 项目说明
+└── logo/                               # 项目标识资源
 ```
 
 ## 🚀 快速开始
@@ -373,39 +333,6 @@ RisKVA/
 ## 🔧 配置说明
 
 详细的配置选项请参考 `configs/` 目录下的相关文件。
-
-## 📝 开发路线图与待办事项
-
-### 🎯 v1.0 版本目标
-- ✅ 基础VLM训练框架搭建
-- ✅ Subunit-Risk数据集集成
-- ✅ Qwen2.5-VL模型适配
-- ✅ 多GPU训练优化
-- ✅ 优化显存和内存的垃圾处理
-- ✅ 使用flashattention优化训练性能
-- ✅ 完善prompt
-- ✅ 图像增强处理
-- ✅ 清洗数据集
-- ✅ 训练3B/7B模型
-- ✅ 评估3B/7B模型
-
-### 🚀 v2.0 版本目标
-- ✅ LangGraph数据智能体集成
-- ✅ MySQL数据库查询工具
-- ✅ Next.js聊天界面开发
-- ✅ 数据可视化功能
-- 🔄 知识灌注——室内风险评估
-- 🔄 风险识别脚本
-
-### 🚀 下一版本规划 (v3.0)
-- 📋 复现LLaVA
-- 📋 PEFT训练代码框架
-- 📋 GRPO训练代码框架
-- 📋 使用ligerloss优化训练性能
-- 📋 Web界面开发
-- 📋 批量推理性能提升
-
-> 💡 **任务状态说明：** ✅ 已完成 | 🔄 进行中 | 📋 待开始
 
 ## 🤝 贡献指南
 

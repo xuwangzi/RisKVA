@@ -1,40 +1,39 @@
 """
-DINOv2 图像分类训练脚本（支持类别权重平衡）
+DINOv2 图像分类训练脚本（支持类别权重平衡和多种学习率调度策略）
 使用 DINOv2 作为特征提取器，添加 MLP 分类头进行缺陷分类
 
-# 仅训练分类头（使用类别权重平衡）
-python diinov2.py \
+# 使用带Warmup的余弦退火调度器
+python /home/d3010/code/RisKVA/src/dino_subunit_risk/diinov2.py \
   --model_name dinov2_vitg14 \
-  --state_dict_path /home/d3010/code/models/dinov2/dinov2_vitg14_pretrain.pth \
-  --pass_k 2 \
-  --use_class_weights
+  --state_dict_path /home/d3010/code/RisKVA/models/pretrained_models/dinov2/dinov2_vitg14_reg4_pretrain.pth \
+  --data_dir /home/d3010/code/RisKVA/datasets/Subunit-Risk_v4 \
+  --csv_file /home/d3010/code/RisKVA/datasets/Subunit-Risk_v4/metadata_with_image.csv \
+  --scheduler cosine_warmup \
+  --warmup_epochs 3 \
+  --min_lr 1e-5 \
+  --epochs 50
+#   --use_class_weights \
 
-# 仅训练分类头（不使用类别权重平衡）
-python diinov2.py \
+# 使用Plateau调度器，根据验证loss自动调整学习率
+python /home/d3010/code/RisKVA/src/dino_subunit_risk/diinov2.py \
   --model_name dinov2_vitg14 \
-  --state_dict_path /home/d3010/code/models/dinov2/dinov2_vitg14_pretrain.pth \
-  --pass_k 2
-
-python diinov2.py \
-  --model_name dinov2_vitg14 \
-  --state_dict_path /home/d3010/code/models/dinov2/dinov2_vitg14_pretrain.pth \
-  --pass_k 2 \
-  --csv_file /home/d3010/code/datasets/Subunit-Risk_all/metadata_with_image_filterbadcase.csv
+  --state_dict_path /home/d3010/code/RisKVA/models/pretrained_models/dinov2/dinov2_vitg14_reg4_pretrain.pth \
+  --data_dir /home/d3010/code/RisKVA/datasets/Subunit-Risk_v4 \
+  --csv_file /home/d3010/code/RisKVA/datasets/Subunit-Risk_v4/metadata_with_image.csv \
+  --scheduler plateau \
+  --patience 2 \
+  --min_lr 1e-5 \
+  --use_class_weights \
+  --epochs 50
 
 # 仅评估模型
 python diinov2.py \
   --model_name dinov2_vitg14 \
-  --state_dict_path /home/d3010/code/models/dinov2/dinov2_vitg14_pretrain.pth \
-  --eval_from_checkpoint /home/d3010/code/datasets/Subunit-Risk_all/checkpoints/best_model.pth \
+  --state_dict_path /home/d3010/code/RisKVA/models/pretrained_models/dinov2/dinov2_vitg14_reg4_pretrain.pth \
+  --eval_from_checkpoint /home/d3010/code/RisKVA/src/dino_subunit_risk/checkpoints/checkpoints_1763711824/best_model.pth \
+  --data_dir /home/d3010/code/RisKVA/datasets/Subunit-Risk_v4 \
+  --csv_file /home/d3010/code/RisKVA/datasets/Subunit-Risk_v4/metadata_with_image.csv \
   --pass_k 2
-
-# 训练分类头和DINOv2 backbone（使用类别权重平衡）效果不好
-python diinov2.py \
-  --model_name dinov2_vitg14 \
-  --state_dict_path /home/d3010/code/models/dinov2/dinov2_vitg14_pretrain.pth \
-  --freeze_backbone False \
-  --pass_k 2 \
-  --use_class_weights
 """
 
 import os
@@ -57,7 +56,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 # 默认路径（模块级，供类初始化等位置使用；可被命令行参数覆盖）
-DEFAULT_DATA_DIR = "/home/d3010/code/datasets/Subunit-Risk_all"
+DEFAULT_DATA_DIR = "/home/d3010/code/RisKVA/datasets/Subunit-Risk_v2"
 DEFAULT_CSV_FILE = "metadata_with_image.csv"
 
 
@@ -83,7 +82,7 @@ class DefectDataset(Dataset):
         self.idx_to_label = {}
         
         # 收集所有标签
-        unique_labels = sorted(self.df['defect_category_num'].unique())
+        unique_labels = sorted(self.df['defect_category_text'].unique())
         self.label_to_idx = {label: idx for idx, label in enumerate(unique_labels)}
         self.idx_to_label = {idx: label for label, idx in self.label_to_idx.items()}
         self.num_classes = len(unique_labels)
@@ -93,7 +92,7 @@ class DefectDataset(Dataset):
         # 构建样本列表
         for _, row in self.df.iterrows():
             image_paths_str = row['all_image_paths']
-            label = row['defect_category_num']
+            label = row['defect_category_text']
             label_idx = self.label_to_idx[label]
             
             # 解析 JSON 格式的图片路径列表
@@ -484,7 +483,8 @@ def main():
                         help='是否冻结 DINOv2 权重')
     parser.add_argument('--test_size', type=float, default=0.2, help='测试集比例')
     parser.add_argument('--val_size', type=float, default=0.1, help='验证集比例')
-    parser.add_argument('--save_dir', type=str, default='./checkpoints', help='模型保存目录')
+    import time
+    parser.add_argument('--save_dir', type=str, default=f'./checkpoints/checkpoints_{int(time.time())}', help='模型保存目录（默认带时间戳）')
     parser.add_argument('--resume', type=str, default=None, help='恢复训练的检查点路径')
     parser.add_argument('--img_size', type=int, default=224, help='输入图像尺寸 (224 或 518)')
     parser.add_argument('--num_workers', type=int, default=4, help='数据加载器的工作进程数')
@@ -492,7 +492,7 @@ def main():
                         help='通过 torch.save(model) 完整序列化的 DINOv2 模型文件路径（优先使用）')
     parser.add_argument('--state_dict_path', type=str, default=None, 
                         help='DINOv2 预训练权重 state_dict/checkpoint 路径（与 --dinov2_repo_dir 搭配使用）')
-    parser.add_argument('--dinov2_repo_dir', type=str, default='/home/d3010/code/dinov2', 
+    parser.add_argument('--dinov2_repo_dir', type=str, default='/home/d3010/code/RisKVA/src/dino_subunit_risk/dinov2', 
                         help='本地 dinov2 源码目录，用于从源码构建模型结构')
     parser.add_argument('--eval_from_checkpoint', type=str, default=None,
                         help='仅评估：从给定检查点路径加载权重，跳过训练，直接在测试集上评估')
@@ -500,6 +500,17 @@ def main():
                         help='Pass@k 评估中的 k 值（默认: 3，表示检查真实标签是否在前 k 个预测中）')
     parser.add_argument('--use_class_weights', action='store_true', default=False,
                         help='是否使用类别权重平衡损失函数（基于训练集的类别频率计算反频率权重）')
+    parser.add_argument('--scheduler', type=str, default='cosine', 
+                        choices=['cosine', 'plateau', 'cosine_warmup', 'step'],
+                        help='学习率调度器类型: cosine(余弦退火), plateau(根据验证loss调整), cosine_warmup(带warmup的余弦), step(阶梯衰减)')
+    parser.add_argument('--min_lr', type=float, default=1e-5, 
+                        help='最小学习率（默认: 1e-5，比原来的1e-6大10倍）')
+    parser.add_argument('--warmup_epochs', type=int, default=3, 
+                        help='Warmup轮数（仅当scheduler=cosine_warmup时使用，默认: 3）')
+    parser.add_argument('--patience', type=int, default=5, 
+                        help='Plateau调度器的耐心值（验证loss不下降多少轮后降低学习率，默认: 5）')
+    parser.add_argument('--factor', type=float, default=0.5, 
+                        help='Plateau调度器的学习率衰减因子（默认: 0.5）')
 
     parser.add_argument('--data_dir', type=str, default=DEFAULT_DATA_DIR, 
                         help=f'数据集根目录（默认: {DEFAULT_DATA_DIR}）')
@@ -540,6 +551,12 @@ def main():
     # 划分数据集 - 使用分层采样确保每个集合中类别分布一致
     indices = list(range(len(full_dataset)))
     labels = [full_dataset.samples[i][1] for i in indices]
+
+    # 在分层划分前先打乱索引，确保后续划分的数据顺序经过随机化
+    rng = np.random.default_rng(42)
+    permutation = rng.permutation(len(indices))
+    indices = [indices[i] for i in permutation]
+    labels = [labels[i] for i in permutation]
     
     # 首先划分训练集和临时集（验证+测试）
     train_indices, temp_indices = train_test_split(
@@ -654,7 +671,46 @@ def main():
         lr=args.lr,
         weight_decay=1e-4
     )
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
+    
+    # 根据参数选择不同的学习率调度器
+    if args.scheduler == 'cosine':
+        # 余弦退火：提高最小学习率，避免后期过小
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=args.epochs, eta_min=args.min_lr
+        )
+        print(f"使用余弦退火调度器，最小学习率: {args.min_lr}")
+    elif args.scheduler == 'plateau':
+        # 根据验证loss调整：更智能，只在验证loss不下降时降低学习率
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode='min', factor=args.factor, patience=args.patience,
+            min_lr=args.min_lr
+        )
+        print(f"使用Plateau调度器，耐心值: {args.patience}, 衰减因子: {args.factor}, 最小学习率: {args.min_lr}")
+    elif args.scheduler == 'cosine_warmup':
+        # 带warmup的余弦退火：前期逐渐增加学习率，后期余弦退火
+        from torch.optim.lr_scheduler import LambdaLR
+        def lr_lambda(epoch):
+            if epoch < args.warmup_epochs:
+                # Warmup阶段：线性增长到初始学习率
+                return (epoch + 1) / args.warmup_epochs
+            else:
+                # Cosine退火阶段：从初始学习率退火到最小学习率
+                progress = (epoch - args.warmup_epochs) / (args.epochs - args.warmup_epochs)
+                # 计算余弦退火的比例因子（从1.0降到min_lr/lr）
+                cosine_factor = 0.5 * (1 + np.cos(np.pi * progress))
+                min_lr_ratio = args.min_lr / args.lr
+                return cosine_factor * (1 - min_lr_ratio) + min_lr_ratio
+        scheduler = LambdaLR(optimizer, lr_lambda)
+        print(f"使用带Warmup的余弦退火调度器，Warmup轮数: {args.warmup_epochs}, 最小学习率: {args.min_lr}")
+    elif args.scheduler == 'step':
+        # 阶梯衰减：每30%的epoch降低一次学习率
+        step_size = max(1, int(args.epochs * 0.3))
+        scheduler = optim.lr_scheduler.StepLR(
+            optimizer, step_size=step_size, gamma=args.factor
+        )
+        print(f"使用阶梯衰减调度器，步长: {step_size}, 衰减因子: {args.factor}")
+    else:
+        raise ValueError(f"不支持的调度器类型: {args.scheduler}")
     
     # 恢复训练
     start_epoch = 0
@@ -701,14 +757,25 @@ def main():
                 model, val_loader, criterion, device, epoch, pass_k=args.pass_k
             )
             
-            # 学习率调度
-            scheduler.step()
+            # 学习率调度（根据调度器类型选择不同的调用方式）
+            if args.scheduler == 'plateau':
+                # Plateau调度器需要传入验证loss
+                scheduler.step(val_loss)
+                current_lr = optimizer.param_groups[0]['lr']
+            else:
+                # 其他调度器直接调用step()
+                scheduler.step()
+                # 获取当前学习率
+                if hasattr(scheduler, 'get_last_lr'):
+                    current_lr = scheduler.get_last_lr()[0]
+                else:
+                    current_lr = optimizer.param_groups[0]['lr']
             
             # 打印结果
             print(f"\nEpoch {epoch+1}/{args.epochs}")
             print(f"Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.2f}%")
             print(f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.2f}%, Val Pass@{args.pass_k}: {val_pass_k_acc:.2f}%")
-            print(f"Learning Rate: {scheduler.get_last_lr()[0]:.6f}")
+            print(f"Learning Rate: {current_lr:.6f}")
             
             # 保存最佳模型
             if val_acc > best_val_acc:
